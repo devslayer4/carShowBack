@@ -1,0 +1,343 @@
+openapi: 3.0.0
+info:
+  title: Numeric bank of Madagascar
+  version: 1.0.0
+  description: API specification for the numeric bank of Madagascar
+servers:
+  - url: https://exemple.com/api/v1
+tags:
+  - name: Account
+    description: Classic managment of a bank account
+  - name: Wallet
+    description: User portfolio client
+paths:
+  /account:
+    get:
+      tags:
+        - Comptes
+      summary: Get the list of all accounts
+      responses:
+        '200':
+          description: Successfull
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetComptesResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+    post:
+      tags:
+        - Account
+      summary: Create a new account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompteRequest'
+      responses:
+        '200':
+          description: Succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompteResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+
+
+  /account/{id}:
+    get:
+      tags:
+        - Comptes
+      summary: Get an account by ID
+      responses:
+        '200':
+          description: Succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetComptesResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+    
+          
+  /transaction/{transaction_id}/categorization:
+    put:
+      tags:
+        - Wallet
+      summary: Categorize an existing transaction
+      parameters:
+        - $ref: '#/components/parameters/TransactionIdParameter'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategorisationRequest'
+      responses:
+        '200':
+          description: Successfull
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategorisationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+
+  /transactions/categorisation:
+    post:
+      tags:
+        - Portefeuille
+      summary: Categorize some transaction with the same description
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MultipleCategorisationRequest'
+      responses:
+        '200':
+          description: Successfull
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MultipleCategorisationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+
+  /dashboard:
+    get:
+      tags:
+        - Wallet
+      summary: Get the data of the dashboard
+      parameters:
+        - $ref: '#/components/parameters/PeriodeParameter'
+      responses:
+        '200':
+          description: Successfull
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardDataResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+
+
+components:
+  schemas:
+    Compte:
+      type: object
+      properties:
+        accountId:
+          type: string
+          description: Id of an account
+        nomClient:
+          type: string
+          description: Client's firstname
+        prenomClient:
+          type: string
+          description: Client's lastname
+        dateNaissanceClient:
+          type: string
+          format: date
+          description: Birthdate's client
+        salaireMensuelNet:
+          type: number
+          description: Mensual salary's client
+        balance:
+          type: number
+          description: Solde du compte
+      required:
+        - id
+        - first_name
+        - last_name
+        - birth_date
+        - mensual_salary
+        - balance
+        - can_take_credit
+
+    CompteRequest:
+      type: object
+      properties:
+        nom:
+          type: string
+        prenom:
+          type: string
+        date_naissance:
+          type: string
+          format: date
+        salaire_mensuel_net:
+          type: number
+        numero_compte_unique:
+          type: string
+      required:
+        - first_name
+        - last_name
+        - birth_date
+        - mensual_salary
+        - id  
+    CategorisationRequest:
+      type: object
+      properties:
+        categorie:
+          type: string
+          description: Catégorie de la transaction
+        commentaire:
+          type: string
+          description: Commentaire facultatif sur la catégorie
+      required:
+        - categorie
+
+    MultipleCategorisationRequest:
+      type: object
+      properties:
+        description:
+          type: string
+          description: Description commune des transactions à catégoriser
+        categorie:
+          type: string
+          description: Catégorie à attribuer à toutes les transactions
+        commentaire:
+          type: string
+          description: Commentaire facultatif sur la catégorie
+      required:
+        - description
+        - categorie
+    GetComptesResponse:
+      type: object
+      properties:
+        status:
+          type: object
+          properties:
+            code:
+              type: integer
+              example: 200
+            message:
+              type: string
+              example: "Succès"
+        body:
+          type: array
+          items:
+            $ref: '#/components/schemas/Compte'
+
+    CompteResponse:
+      type: object
+      properties:
+        status:
+          type: object
+          properties:
+            code:
+              type: integer
+              example: 200
+            message:
+              type: string
+              example: "Compte créé avec succès"
+        body:
+          $ref: '#/components/schemas/Compte'
+    CategorisationResponse:
+      type: object
+      properties:
+        status:
+          type: object
+          properties:
+            code:
+              type: integer
+              example: 200
+            message:
+              type: string
+              example: "Transaction catégorisée avec succès"
+
+    MultipleCategorisationResponse:
+      type: object
+      properties:
+        status:
+          type: object
+          properties:
+            code:
+              type: integer
+              example: 200
+            message:
+              type: string
+              example: "Transactions catégorisées avec succès"
+
+    DashboardDataResponse:
+      type: object
+      properties:
+        status:
+          type: object
+          properties:
+            code:
+              type: integer
+              example: 200
+            message:
+              type: string
+              example: "Données du tableau de bord récupérées avec succès"
+        body:
+          type: object
+          properties:
+            pie_chart:
+              type: object
+              example: "{ pie chart data }"
+            other_chart:
+              type: object
+              example: "{ other chart data }"
+  parameters:
+    TransactionIdParameter:
+      name: transaction_id
+      in: path
+      description: ID de la transaction à catégoriser
+      required: true
+      schema:
+        type: integer
+
+    PeriodeParameter:
+      name: periode
+      in: query
+      description: Période de visualisation (par défaut par mois, peut être en jour)
+      required: false
+      schema:
+        type: string
+        
+  responses:
+    ForbiddenResponse:
+      description: Accès refusé
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 403
+                  message:
+                    type: string
+                    example: "Accès refusé"
+
+    BadRequestResponse:
+      description: Requête invalide
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: "Requête invalide"
